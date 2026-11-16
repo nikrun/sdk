@@ -3,7 +3,7 @@
 **Nikrun** is a zero-config, user-scope toolchain and developer ecosystem for **Object Pascal / Free Pascal**, split across three core repositories under `https://github.com/nikrun`:
 
 1. **[`nikrun/sdk`](https://github.com/nikrun/sdk)** *(this repository)* — Portable Free Pascal SDK build pipeline, `versions.json`, `sdk-manifest.json` / `sdk-index.json` schemas, and nightly GitHub Releases (`fpc-sdk-latest`).
-2. **[`nikrun/cli`](https://github.com/nikrun/cli)** — Standalone `nik` CLI (`src/nik.*.pas`), `nikrun-lsp-protocol` (`lsp-protocol/`), and ecosystem design radar (`docs/design-radar.md`).
+2. **[`nikrun/cli`](https://github.com/nikrun/cli)** — Standalone `nik` CLI (`src/nik.*.pas`) and `nikrun-lsp-protocol` (`lsp-protocol/`).
 3. **[`nikrun/vscode`](https://github.com/nikrun/vscode)** — Official `vscode-nikrun` Visual Studio Code extension.
 
 ---
