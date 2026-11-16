@@ -5,7 +5,7 @@
 .DESCRIPTION
     Reads tracked branches and runner mappings from versions.json, queries upstream
     Git repositories via 'git ls-remote', optionally compares commits against the published
-    sdk-index.json on GitHub Releases (or a local file), and outputs the filtered build matrix.
+    index.json on GitHub Releases (or a local file), and outputs the filtered build matrix.
     When running inside GitHub Actions, writes 'has_targets' and 'matrix' to GITHUB_OUTPUT and
     appends a Markdown status table to GITHUB_STEP_SUMMARY.
 
@@ -32,7 +32,7 @@ param(
     [string]$Repository = '',
 
     [Parameter()]
-    [string]$ReleaseTag = 'fpc-sdk-latest',
+    [string]$ReleaseTag = 'latest',
 
     [Parameter()]
     [string]$ExistingIndexPath = '',
@@ -146,7 +146,7 @@ if ([string]::IsNullOrWhiteSpace($selectedRaw) -or $selectedRaw.ToLowerInvariant
     $selectedBranches = @($selectedRaw.Split(',', [System.StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $_.Trim() })
 }
 
-# Load existing sdk-index.json when incremental update check is active
+# Load existing index.json when incremental update check is active
 $existingSdks = @()
 if ($onlyIfUpdated) {
     $tempDownloadedIndex = $null
@@ -157,7 +157,7 @@ if ($onlyIfUpdated) {
             $tempDownloadedIndex = Join-Path ([System.IO.Path]::GetTempPath()) ("nikrun-existing-sdk-index-{0}.json" -f [guid]::NewGuid().ToString('N'))
             $prevErr = $ErrorActionPreference
             $ErrorActionPreference = 'Continue'
-            & gh release download $ReleaseTag --repo $Repository --pattern 'sdk-index.json' --output $tempDownloadedIndex --clobber 2>$null
+            & gh release download $ReleaseTag --repo $Repository --pattern 'index.json' --output $tempDownloadedIndex --clobber 2>$null
             $dlExit = $LASTEXITCODE
             $ErrorActionPreference = $prevErr
             if ($dlExit -eq 0 -and (Test-Path $tempDownloadedIndex)) {
@@ -173,10 +173,10 @@ if ($onlyIfUpdated) {
                 $existingSdks = @(Get-PropValue $existingIdx 'sdks' @())
                 Write-Host "Loaded $($existingSdks.Count) published SDK entry/entries for update comparison." -ForegroundColor Cyan
             } catch {
-                Write-Warning "Could not parse existing sdk-index.json; treating all branches as needing build."
+                Write-Warning "Could not parse existing index.json; treating all branches as needing build."
             }
         } else {
-            Write-Host "No existing sdk-index.json available for '$ReleaseTag'; all selected branches will be built." -ForegroundColor Yellow
+            Write-Host "No existing index.json available for '$ReleaseTag'; all selected branches will be built." -ForegroundColor Yellow
         }
     } finally {
         if ($null -ne $tempDownloadedIndex -and (Test-Path $tempDownloadedIndex)) {

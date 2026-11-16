@@ -20,7 +20,7 @@ Each Nikrun FPC SDK archive bundles everything required to compile and analyze O
 1. **Branch & Git-URL Driven:** Builds directly from Free Pascal Git branches/refs (or any valid Free Pascal Git repository URL). The exact compiler version is extracted automatically from `compiler/version.pas`, and both the 8-character commit short SHA (in the archive filename/`sdkId`) and full 40-character commit SHA (in `sdk-manifest.json`) are recorded.
 2. **Portable Layout:** No hardcoded machine paths in `fpc.cfg`. A clean `fpc.cfg` is generated automatically upon extraction into `~/.nikrun/sdks/<sdkId>`.
 3. **Bundled RTL & Packages Sources:** Includes the `.pas`, `.pp`, and `.inc` source files of the Free Pascal Runtime Library (`rtl`) and standard `packages` required by `nik lsp` and IDE language servers for code completion and navigation.
-4. **Automated Nightly Updates:** A scheduled GitHub Actions workflow checks all branches configured in [`versions.json`](./versions.json) every night against the commit SHAs published in `sdk-index.json` and rebuilds only the branches that received upstream updates.
+4. **Automated Nightly Updates:** A scheduled GitHub Actions workflow checks all branches configured in [`versions.json`](./versions.json) every night against the commit SHAs published in `index.json` and rebuilds only the branches that received upstream updates.
 
 ---
 
@@ -35,7 +35,7 @@ While `freepascal.org` distributes precompiled release installers (which `build.
 | **Multi-Version & Branch Coverage** | Infrequent static releases (`3.2.2` dates from 2021). Installing multiple versions side by side risks `PATH` and `fpc.cfg` collisions; no prebuilt `main` (`3.3.1`) or `fixes_3_2`. | **Side-by-side versions + nightly builds:** Prebuilt archives for stable (`3.2.2`, `3.2.4`), maintenance (`fixes_3_2` / `3.2.5`), and trunk (`main` / `3.3.1`, including anonymous functions and modern language features). |
 | **Native 64-Bit, `aarch64-win64` & Binutils** | No official download for **Windows ARM64 (`aarch64-win64`)**; Windows `3.2.2` defaults to a 32-bit `ppc386` host binary. | Native 64-bit `ppcx64` / `ppca64` compilers everywhere—including **native `aarch64-win64`**—bundled with required Windows binutils (`ld`/`windres` on x64, LLVM `clang`/`llvm-ar` on ARM64). |
 | **Bundled RTL & Package Sources** | Binary installers and source archives are often separate downloads or placed in OS-dependent directories. | **IDE & LSP ready:** Every SDK archive includes clean `.pas`, `.pp`, and `.inc` sources under `source/rtl` and `source/packages` for immediate code navigation and `nik lsp` indexing. |
-| **CLI, CI/CD & Integrity** | Designed around manual SourceForge downloads and interactive setup wizards. | Machine-readable `sdk-manifest.json` (with exact 40-char `gitCommit` and direct `paths.ppcBinary`) + `sdk-index.json` with SHA-256 checksums for unattended `nik sdk install <version>`. |
+| **CLI, CI/CD & Integrity** | Designed around manual SourceForge downloads and interactive setup wizards. | Machine-readable `sdk-manifest.json` (with exact 40-char `gitCommit` and direct `paths.ppcBinary`) + `index.json` with SHA-256 checksums for unattended `nik sdk install <version>`. |
 
 ---
 
@@ -136,11 +136,11 @@ CI/release automation scripts invoked by [`.github/workflows/build-fpc-sdk.yml`]
 # Check upstream Git commits against versions.json and preview the filtered build matrix
 .\resolve-matrix.ps1 -Branch main,fixes_3_2 -TargetFilter x86_64-win64 -ForceRebuild
 
-# Dry-run sdk-index.json & release-notes.md generation locally from ./dist archives
+# Dry-run index.json & release-notes.md generation locally from ./dist archives
 .\publish-release.ps1 -InputDir .\dist -Repository nikrun/sdk -DryRun
 
-# Render the Markdown version-by-target release notes table from an existing sdk-index.json
-.\format-release-notes.ps1 -IndexPath .\sdk-index.json -OutputPath .\release-notes.md
+# Render the Markdown version-by-target release notes table from an existing index.json
+.\format-release-notes.ps1 -IndexPath .\index.json -OutputPath .\release-notes.md
 ```
 
 ---

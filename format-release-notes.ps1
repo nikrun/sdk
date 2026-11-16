@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Renders the compact Markdown release notes matrix table from sdk-index.json or SDK entries.
+    Renders the compact Markdown release notes matrix table from index.json or SDK entries.
 
 .DESCRIPTION
     Groups published FreePascal SDK entries by (fpcVersion, gitRef), orders versions newest-first,
@@ -8,8 +8,8 @@
     Releases and GITHUB_STEP_SUMMARY.
 
 .EXAMPLE
-    .\format-release-notes.ps1 -IndexPath .\sdk-index.json
-    .\format-release-notes.ps1 -IndexPath .\sdk-index.json -OutputPath .\release-notes.md
+    .\format-release-notes.ps1 -IndexPath .\index.json
+    .\format-release-notes.ps1 -IndexPath .\index.json -OutputPath .\release-notes.md
 #>
 [CmdletBinding()]
 param(
@@ -108,7 +108,7 @@ $effectiveReleaseTag = $ReleaseTag
 
 if (-not [string]::IsNullOrWhiteSpace($IndexPath)) {
     if (-not (Test-Path $IndexPath)) {
-        throw "sdk-index.json not found at $IndexPath"
+        throw "index.json not found at $IndexPath"
     }
     $indexDoc = Get-Content -Path $IndexPath -Raw | ConvertFrom-Json
     if ($sdkEntries.Count -eq 0) {
@@ -120,7 +120,7 @@ if (-not [string]::IsNullOrWhiteSpace($IndexPath)) {
 }
 
 if ([string]::IsNullOrWhiteSpace($effectiveReleaseTag)) {
-    $effectiveReleaseTag = 'fpc-sdk-latest'
+    $effectiveReleaseTag = 'latest'
 }
 
 # Infer Repository from an entry downloadUrl when running locally without -Repository
@@ -214,9 +214,9 @@ $orderedGroups = @(
 )
 
 $indexRef = if (-not [string]::IsNullOrWhiteSpace($Repository)) {
-    "[``sdk-index.json``](https://github.com/$Repository/releases/download/$effectiveReleaseTag/sdk-index.json)"
+    "[``index.json``](https://github.com/$Repository/releases/download/$effectiveReleaseTag/index.json)"
 } else {
-    "``sdk-index.json``"
+    "``index.json``"
 }
 $invCulture = [System.Globalization.CultureInfo]::InvariantCulture
 

@@ -22,22 +22,23 @@ on:
         default: 'all'
         type: string
       force_rebuild:
-        description: 'Rebuild even if branch commit SHA is already up-to-date in sdk-index.json'
+        description: 'Rebuild even if branch commit SHA is already up-to-date in index.json'
         required: true
         default: false
         type: boolean
       publish_release:
-        description: 'Publish built SDK archives & sdk-index.json to GitHub Releases'
+        description: 'Publish built SDK archives & index.json to GitHub Releases'
         required: true
         default: true
         type: boolean
       refresh_notes_only:
-        description: 'Regenerate GitHub Release notes from existing sdk-index.json without building SDKs'
+        description: 'Regenerate GitHub Release notes from existing index.json without building SDKs'
         required: true
         default: false
         type: boolean
   push:
     tags:
+      - 'v*'
       - 'fpc-sdk-v*'
 
 concurrency:
@@ -139,7 +140,7 @@ jobs:
           if-no-files-found: error
 
   publish-sdk-release:
-    name: "Publish FPC SDK Release & sdk-index.json"
+    name: "Publish FPC SDK Release & index.json"
     needs:
       - prepare-matrix
       - build-fpc-sdk
@@ -166,7 +167,7 @@ jobs:
           pattern: nikrun-fpc-sdk-*
           merge-multiple: true
 
-      - name: Generate sdk-index.json & Publish GitHub Release
+      - name: Generate index.json & Publish GitHub Release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -175,10 +176,10 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           INPUT_REFRESH_NOTES_ONLY: ${{ inputs.refresh_notes_only }}
         run: |
-          $releaseTag = if ($env:EVENT_NAME -eq 'push' -and $env:REF_NAME -like 'fpc-sdk-v*') {
+          $releaseTag = if ($env:EVENT_NAME -eq 'push' -and ($env:REF_NAME -like 'v*' -or $env:REF_NAME -like 'fpc-sdk-v*')) {
             $env:REF_NAME
           } else {
-            'fpc-sdk-latest'
+            'latest'
           }
           $refreshNotesOnly = ("$env:INPUT_REFRESH_NOTES_ONLY".Trim().ToLowerInvariant() -eq 'true')
           $params = @{

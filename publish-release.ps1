@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Generates sdk-index.json and release-notes.md and publishes FreePascal SDK archives to GitHub Releases.
+    Generates index.json and release-notes.md and publishes FreePascal SDK archives to GitHub Releases.
 
 .DESCRIPTION
     Merges newly built nikrun-fpc-sdk-*.zip archives (reading sdk-manifest.json directly from each ZIP)
-    with an existing sdk-index.json from GitHub Releases (or -ExistingIndexPath), writes the updated
-    sdk-index.json and Markdown release notes (via format-release-notes.ps1), uploads assets via 'gh',
+    with an existing index.json from GitHub Releases (or -ExistingIndexPath), writes the updated
+    index.json and Markdown release notes (via format-release-notes.ps1), uploads assets via 'gh',
     and removes superseded snapshot assets. Use -DryRun to test index and release-notes generation locally
     without modifying GitHub Releases.
 
@@ -23,7 +23,7 @@ param(
     [string]$Repository = '',
 
     [Parameter()]
-    [string]$ReleaseTag = 'fpc-sdk-latest',
+    [string]$ReleaseTag = 'latest',
 
     [Parameter()]
     [string]$ExistingIndexPath = '',
@@ -63,7 +63,7 @@ if ([string]::IsNullOrWhiteSpace($Repository) -and -not [string]::IsNullOrWhiteS
     $Repository = $env:GITHUB_REPOSITORY
 }
 if ([string]::IsNullOrWhiteSpace($IndexOutputPath)) {
-    $IndexOutputPath = Join-Path $InputDir 'sdk-index.json'
+    $IndexOutputPath = Join-Path $InputDir 'index.json'
 }
 if ([string]::IsNullOrWhiteSpace($NotesOutputPath)) {
     $NotesOutputPath = Join-Path $PWD 'release-notes.md'
@@ -140,12 +140,12 @@ if ((-not $RefreshNotesOnly.IsPresent) -and ($zips.Count -eq 0)) {
 
 $repoDisplay = if (-not [string]::IsNullOrWhiteSpace($Repository)) { $Repository } else { 'local' }
 if ($RefreshNotesOnly.IsPresent) {
-    Write-Host "==> Refreshing release notes for '$ReleaseTag' ($repoDisplay) from existing sdk-index.json..." -ForegroundColor Cyan
+    Write-Host "==> Refreshing release notes for '$ReleaseTag' ($repoDisplay) from existing index.json..." -ForegroundColor Cyan
 } else {
     Write-Host "==> Preparing release '$ReleaseTag' ($repoDisplay) with $($zips.Count) SDK archive(s)..." -ForegroundColor Cyan
 }
 
-# Load existing sdk-index.json from local file or GitHub Release so partial branch/target runs merge cleanly
+# Load existing index.json from local file or GitHub Release so partial branch/target runs merge cleanly
 $sdkMap              = [ordered]@{}
 $tempDownloadedIndex = $null
 $indexSourcePath     = $ExistingIndexPath
@@ -155,7 +155,7 @@ if ([string]::IsNullOrWhiteSpace($indexSourcePath) -and -not [string]::IsNullOrW
         $tempDownloadedIndex = Join-Path ([System.IO.Path]::GetTempPath()) ("nikrun-release-index-{0}.json" -f [guid]::NewGuid().ToString('N'))
         $prevErr = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
-        & gh release download $ReleaseTag --repo $Repository --pattern 'sdk-index.json' --output $tempDownloadedIndex --clobber 2>$null
+        & gh release download $ReleaseTag --repo $Repository --pattern 'index.json' --output $tempDownloadedIndex --clobber 2>$null
         $dlExit = $LASTEXITCODE
         $ErrorActionPreference = $prevErr
         if ($dlExit -eq 0 -and (Test-Path $tempDownloadedIndex)) {
@@ -199,9 +199,9 @@ try {
             Write-Host "    Loaded $($sdkMap.Count) existing SDK entry/entries from '$ReleaseTag'." -ForegroundColor Gray
         } catch {
             if ($RefreshNotesOnly.IsPresent) {
-                throw "Failed to parse existing sdk-index.json: $_"
+                throw "Failed to parse existing index.json: $_"
             }
-            Write-Warning "Could not parse existing sdk-index.json, creating fresh index."
+            Write-Warning "Could not parse existing index.json, creating fresh index."
         }
     }
 } finally {
@@ -211,7 +211,7 @@ try {
 }
 
 if ($RefreshNotesOnly.IsPresent -and ($sdkMap.Count -eq 0)) {
-    throw "Cannot refresh release notes: no existing sdk-index.json entries found for release '$ReleaseTag'."
+    throw "Cannot refresh release notes: no existing index.json entries found for release '$ReleaseTag'."
 }
 
 $supersededAssets = [System.Collections.Generic.List[string]]::new()
@@ -301,7 +301,7 @@ if ($needsAssetPublish) {
     }
     $indexJson = ($indexObj | ConvertTo-Json -Depth 6) + "`n"
     [System.IO.File]::WriteAllText($IndexOutputPath, $indexJson, [System.Text.UTF8Encoding]::new($false))
-    Write-Host "    Wrote sdk-index.json ($($sortedSdks.Count) SDK entries) -> $IndexOutputPath" -ForegroundColor Gray
+    Write-Host "    Wrote index.json ($($sortedSdks.Count) SDK entries) -> $IndexOutputPath" -ForegroundColor Gray
 }
 
 $formatNotesScript = Join-Path $ScriptRoot 'format-release-notes.ps1'
@@ -357,7 +357,7 @@ if ($needsAssetPublish) {
     & gh release upload $ReleaseTag @assetsToUpload --repo $Repository --clobber
     if ($LASTEXITCODE -ne 0) { throw "gh release upload failed" }
 
-    # Clean up superseded old snapshot assets after new assets & sdk-index.json are live
+    # Clean up superseded old snapshot assets after new assets & index.json are live
     foreach ($staleAsset in ($supersededAssets | Select-Object -Unique)) {
         Write-Host "    Removing superseded release asset: $staleAsset" -ForegroundColor DarkGray
         $prevErr = $ErrorActionPreference
@@ -366,7 +366,7 @@ if ($needsAssetPublish) {
         $ErrorActionPreference = $prevErr
     }
 
-    Write-Host " [OK] Published GitHub Release '$ReleaseTag' and sdk-index.json!" -ForegroundColor Green
+    Write-Host " [OK] Published GitHub Release '$ReleaseTag' and index.json!" -ForegroundColor Green
 } else {
     Write-Host " [OK] Refreshed release notes for '$ReleaseTag'!" -ForegroundColor Green
 }

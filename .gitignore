@@ -4,7 +4,7 @@ dist/
 .nikrun/
 release-input/
 release-notes.md
-sdk-index.json
+index.json
 
 # FPC build artifacts
 *.ppu
