@@ -1,0 +1,29 @@
+# Build, staging & release working directories
+dist/
+.work/
+.nikrun/
+release-input/
+release-notes.md
+sdk-index.json
+
+# FPC build artifacts
+*.ppu
+*.o
+*.a
+*.or
+*.res
+*.compiled
+*.exe
+*.dbg
+*.zip
+*.sha256
+ppas.bat
+ppas.sh
+link.res
+fpcdebug.txt
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+*.bak
+*~

@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 2,
+  "defaultRepository": "https://gitlab.com/freepascal.org/fpc/source.git",
+  "defaultBranch": "release_3_2_4-branch",
+  "branches": {
+    "release_3_2_2": {
+      "description": "Free Pascal 3.2.2 official release tag",
+      "gitRepo": "https://gitlab.com/freepascal.org/fpc/source.git",
+      "binariesRepoUrl": "https://gitlab.com/freepascal.org/fpc/build/-/archive/release_3_2_2/build-release_3_2_2.tar.gz",
+      "supportedTargets": [
+        "x86_64-win64",
+        "x86_64-linux",
+        "aarch64-linux",
+        "x86_64-darwin",
+        "aarch64-darwin"
+      ]
+    },
+    "release_3_2_4-branch": {
+      "description": "Free Pascal 3.2.4 release branch",
+      "gitRepo": "https://gitlab.com/freepascal.org/fpc/source.git",
+      "binariesRepoUrl": "https://gitlab.com/freepascal.org/fpc/build/-/archive/release_3_2_4-branch/build-release_3_2_4-branch.tar.gz",
+      "supportedTargets": [
+        "x86_64-win64",
+        "x86_64-linux",
+        "aarch64-linux",
+        "x86_64-darwin",
+        "aarch64-darwin"
+      ]
+    },
+    "fixes_3_2": {
+      "description": "Free Pascal 3.2 maintenance and preparation branch",
+      "gitRepo": "https://gitlab.com/freepascal.org/fpc/source.git",
+      "binariesRepoUrl": "https://gitlab.com/freepascal.org/fpc/build/-/archive/fixes_3_2/build-fixes_3_2.tar.gz",
+      "supportedTargets": [
+        "x86_64-win64",
+        "x86_64-linux",
+        "aarch64-linux",
+        "x86_64-darwin",
+        "aarch64-darwin"
+      ]
+    },
+    "main": {
+      "description": "Free Pascal development trunk (main)",
+      "gitRepo": "https://gitlab.com/tino-teuber/fpc-source.git",
+      "binariesRepoUrl": "https://gitlab.com/freepascal.org/fpc/build/-/archive/main/build-main.tar.gz",
+      "supportedTargets": [
+        "x86_64-win64",
+        "aarch64-win64",
+        "x86_64-linux",
+        "aarch64-linux",
+        "x86_64-darwin",
+        "aarch64-darwin"
+      ]
+    }
+  },
+  "bootstrapPackages": {
+    "win64": {
+      "bootstrapCompilerZipUrl": "https://downloads.freepascal.org/fpc/dist/3.2.2/bootstrap/i386-win32-ppc386-3.2.2.zip",
+      "bootstrapSourceRepo": "https://gitlab.com/freepascal.org/fpc/source.git",
+      "bootstrapSourceRef": "release_3_2_2",
+      "binutilsArchiveUrl": "https://gitlab.com/freepascal.org/fpc/build/-/archive/main/build-main.tar.gz",
+      "llvmMingwArm64ZipUrl": "https://github.com/mstorsjo/llvm-mingw/releases/download/20261104/llvm-mingw-20261104-ucrt-aarch64.zip"
+    },
+    "x86_64-linux": {
+      "tarUrl": "https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-linux/fpc-3.2.2.x86_64-linux.tar"
+    },
+    "aarch64-linux": {
+      "tarUrl": "https://downloads.freepascal.org/fpc/dist/3.2.2/aarch64-linux/fpc-3.2.2.aarch64-linux.tar"
+    },
+    "aarch64-darwin": {
+      "tarUrl": "https://downloads.freepascal.org/fpc/dist/3.2.2/aarch64-darwin/fpc-3.2.2.aarch64-darwin.tar"
+    },
+    "x86_64-darwin": {
+      "tarUrl": "https://downloads.freepascal.org/fpc/dist/3.2.2/x86_64-darwin/fpc-3.2.2.x86_64-darwin.tar"
+    }
+  },
+  "compilerBinaries": {
+    "x86_64": "ppcx64",
+    "aarch64": "ppca64",
+    "i386": "ppc386"
+  },
+  "targetRunners": {
+    "x86_64-win64": "windows-latest",
+    "aarch64-win64": "windows-11-arm",
+    "x86_64-linux": "ubuntu-24.04",
+    "aarch64-linux": "ubuntu-24.04-arm",
+    "x86_64-darwin": "macos-15-intel",
+    "aarch64-darwin": "macos-15"
+  }
+}

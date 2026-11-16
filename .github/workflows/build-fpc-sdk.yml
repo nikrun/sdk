@@ -1,0 +1,191 @@
+name: Build Portable FreePascal SDKs
+
+on:
+  schedule:
+    # Run nightly at 02:17 UTC to check all branches in versions.json for upstream updates
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch/ref(s) from versions.json to check/build (e.g. all, main, or main,fixes_3_2)'
+        required: true
+        default: 'all'
+        type: string
+      repo_url:
+        description: 'Optional custom FreePascal Git repository URL override'
+        required: false
+        default: ''
+        type: string
+      target_filter:
+        description: 'Optional target filter (e.g. all, or comma-separated like x86_64-darwin,main:aarch64-win64)'
+        required: false
+        default: 'all'
+        type: string
+      force_rebuild:
+        description: 'Rebuild even if branch commit SHA is already up-to-date in sdk-index.json'
+        required: true
+        default: false
+        type: boolean
+      publish_release:
+        description: 'Publish built SDK archives & sdk-index.json to GitHub Releases'
+        required: true
+        default: true
+        type: boolean
+      refresh_notes_only:
+        description: 'Regenerate GitHub Release notes from existing sdk-index.json without building SDKs'
+        required: true
+        default: false
+        type: boolean
+  push:
+    tags:
+      - 'fpc-sdk-v*'
+
+concurrency:
+  group: build-fpc-sdk-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  prepare-matrix:
+    name: "Check Branches & Prepare Build Matrix"
+    if: github.event_name != 'workflow_dispatch' || (inputs.refresh_notes_only != true && inputs.refresh_notes_only != 'true')
+    runs-on: ubuntu-24.04
+    outputs:
+      has_targets: ${{ steps.set-matrix.outputs.has_targets }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Check Upstream Commits & Generate Matrix JSON
+        id: set-matrix
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_BRANCH: ${{ inputs.branch }}
+          INPUT_REPO_URL: ${{ inputs.repo_url }}
+          INPUT_TARGET_FILTER: ${{ inputs.target_filter }}
+          INPUT_FORCE_REBUILD: ${{ inputs.force_rebuild }}
+        run: |
+          $forceRebuild = ($env:EVENT_NAME -eq 'push') -or ("$env:INPUT_FORCE_REBUILD".Trim().ToLowerInvariant() -eq 'true')
+          $params = @{
+            Branch       = if ([string]::IsNullOrWhiteSpace($env:INPUT_BRANCH)) { 'all' } else { $env:INPUT_BRANCH }
+            RepoUrl      = "$env:INPUT_REPO_URL"
+            TargetFilter = if ([string]::IsNullOrWhiteSpace($env:INPUT_TARGET_FILTER)) { 'all' } else { $env:INPUT_TARGET_FILTER }
+            Repository   = $env:REPO
+            ForceRebuild = $forceRebuild
+          }
+
+          ./resolve-matrix.ps1 @params
+
+  build-fpc-sdk:
+    name: "FPC SDK (${{ matrix.branch }} @ ${{ matrix.short_commit }}, ${{ matrix.target_cpu }}-${{ matrix.target_os }})"
+    needs: prepare-matrix
+    if: needs.prepare-matrix.outputs.has_targets == 'true'
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Verify OS Build Prerequisites (Linux/macOS)
+        shell: pwsh
+        run: |
+          if ($IsLinux) {
+            if (-not (Get-Command make -ErrorAction SilentlyContinue) -or -not (Get-Command ld -ErrorAction SilentlyContinue)) {
+              sudo apt-get update
+              sudo apt-get install -y build-essential binutils zip unzip
+            }
+          }
+
+      - name: Build Portable FPC SDK Archive
+        shell: pwsh
+        env:
+          MATRIX_BRANCH: ${{ matrix.branch }}
+          MATRIX_REPO_URL: ${{ matrix.repo_url }}
+          MATRIX_COMMIT: ${{ matrix.git_commit }}
+          MATRIX_TARGET_OS: ${{ matrix.target_os }}
+          MATRIX_TARGET_CPU: ${{ matrix.target_cpu }}
+        run: |
+          $params = @{
+            Branch    = $env:MATRIX_BRANCH
+            RepoUrl   = $env:MATRIX_REPO_URL
+            Commit    = $env:MATRIX_COMMIT
+            TargetOs  = $env:MATRIX_TARGET_OS
+            TargetCpu = $env:MATRIX_TARGET_CPU
+          }
+
+          ./build.ps1 @params
+
+      - name: Install & Smoke-Test Built FPC SDK
+        shell: pwsh
+        run: |
+          ./test.ps1
+
+      - name: Upload FPC SDK ZIP Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nikrun-fpc-sdk-${{ matrix.artifact_branch }}-${{ matrix.target_cpu }}-${{ matrix.target_os }}
+          path: |
+            dist/nikrun-fpc-sdk-*.zip
+            dist/nikrun-fpc-sdk-*.zip.sha256
+          if-no-files-found: error
+
+  publish-sdk-release:
+    name: "Publish FPC SDK Release & sdk-index.json"
+    needs:
+      - prepare-matrix
+      - build-fpc-sdk
+    if: >-
+      always() &&
+      (
+        (github.event_name == 'workflow_dispatch' && (inputs.refresh_notes_only == true || inputs.refresh_notes_only == 'true')) ||
+        (
+          needs.prepare-matrix.outputs.has_targets == 'true' &&
+          needs.build-fpc-sdk.result != 'cancelled' &&
+          (github.event_name == 'push' || github.event_name == 'schedule' || inputs.publish_release == true || inputs.publish_release == 'true')
+        )
+      )
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download All Built SDK Artifacts
+        if: github.event_name != 'workflow_dispatch' || (inputs.refresh_notes_only != true && inputs.refresh_notes_only != 'true')
+        uses: actions/download-artifact@v4
+        with:
+          path: release-input
+          pattern: nikrun-fpc-sdk-*
+          merge-multiple: true
+
+      - name: Generate sdk-index.json & Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_REFRESH_NOTES_ONLY: ${{ inputs.refresh_notes_only }}
+        run: |
+          $releaseTag = if ($env:EVENT_NAME -eq 'push' -and $env:REF_NAME -like 'fpc-sdk-v*') {
+            $env:REF_NAME
+          } else {
+            'fpc-sdk-latest'
+          }
+          $refreshNotesOnly = ("$env:INPUT_REFRESH_NOTES_ONLY".Trim().ToLowerInvariant() -eq 'true')
+          $params = @{
+            InputDir         = './release-input'
+            Repository       = $env:REPO
+            ReleaseTag       = $releaseTag
+            RefreshNotesOnly = $refreshNotesOnly
+          }
+
+          ./publish-release.ps1 @params
