@@ -157,9 +157,10 @@ nikrun-fpc-sdk-<version>-<commitShortSha>-<cpu>-<os>.zip
 │                              # (fpc.cfg is generated here upon installation)
 ├── units/
 │   └── <cpu>-<os>/            # Precompiled .ppu units (rtl, fcl-*, rtl-generics, etc.)
-└── source/
-    ├── rtl/                   # Clean RTL source files (.pas, .pp, .inc) for IDE IntelliSense
-    └── packages/              # Clean standard package source files for IDE IntelliSense
+├── source/
+│   ├── rtl/                   # Clean RTL source files (.pas, .pp, .inc) for IDE IntelliSense
+│   └── packages/              # Clean standard package source files for IDE IntelliSense
+└── licenses/                  # Upstream FPC (GPLv2+, COPYING.FPC), binutils (GPLv3) & notice files
 ```
 
 > **Note on `ppc*` vs. `fpc`:** In Free Pascal, `ppcx64` / `ppca64` (*Portable Pascal Compiler*) is the actual CPU-specific compiler backend, whereas `fpc` (`compiler/utils/fpc.pp`) is only a thin upstream CLI dispatcher that selects a `ppc*` binary and forwards flags. Both paths are recorded in `sdk-manifest.json` (`paths.ppcBinary` and `paths.fpcBinary`): `nik` targets `ppc*` directly to avoid an extra wrapper hop and global `PATH` side effects, while `fpc` remains included for compatibility with external scripts and Makefiles.
@@ -168,4 +169,6 @@ nikrun-fpc-sdk-<version>-<commitShortSha>-<cpu>-<os>.zip
 
 ## License
 
-Pipeline scripts and configuration in this repository are licensed under the [MIT License](./LICENSE). Built Free Pascal compiler binaries, runtime libraries, and bundled source files inside generated SDK archives remain under their respective upstream [Free Pascal licenses](https://www.freepascal.org/faq.html#general-license) (GPLv2+ for the compiler; modified LGPL with static linking exception for the RTL and packages).
+Copyright (c) 2026 The Nikrun Contributors.
+
+Pipeline scripts and configuration in this repository are licensed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`) — see [LICENSE](./LICENSE). Built Free Pascal compiler binaries, runtime libraries, binutils, and bundled source files inside generated SDK archives remain under their respective upstream [Free Pascal licenses](https://www.freepascal.org/faq.html#general-license) (GPLv2+ for the compiler; modified LGPL with static linking exception for the RTL and packages; GPLv3 / Apache-2.0 with LLVM Exception for bundled platform binutils).

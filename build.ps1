@@ -1044,6 +1044,37 @@ if ($HostOs -eq 'win64') {
 
 Copy-CleanFpcSources -SourceRoot $srcRoot -TargetSourceRoot $StageSrc
 
+# Bundle upstream Free Pascal & toolchain license texts into licenses/
+$StageLicenses = Join-Path $StageDir 'licenses'
+New-Item -ItemType Directory -Force -Path $StageLicenses | Out-Null
+foreach ($licCandidate in @(
+    @{ Src = (Join-Path $srcRoot 'COPYING.GPL');  Dst = 'COPYING.FPC-Compiler-GPLv2.txt' },
+    @{ Src = (Join-Path $srcRoot 'compiler\COPYING.txt'); Dst = 'COPYING.FPC-Compiler.txt' },
+    @{ Src = (Join-Path $srcRoot 'rtl\COPYING.FPC'); Dst = 'COPYING.FPC-RTL-Linking-Exception.txt' },
+    @{ Src = (Join-Path $srcRoot 'rtl\COPYING.txt'); Dst = 'COPYING.FPC-RTL-LGPLv2.txt' },
+    @{ Src = (Join-Path $PSScriptRoot 'LICENSE'); Dst = 'COPYING.GPLv3.txt' }
+)) {
+    if (Test-Path $licCandidate.Src) {
+        Copy-Item -Path $licCandidate.Src -Destination (Join-Path $StageLicenses $licCandidate.Dst) -Force
+    }
+}
+$NoticeText = @(
+    "Nikrun Portable Free Pascal SDK ($SdkId)"
+    "========================================"
+    ""
+    "Upstream Free Pascal Source Repository : $EffectiveRepoUrl"
+    "Upstream Git Branch / Ref              : $EffectiveBranch"
+    "Upstream Git Commit SHA                : $gitCommitFull"
+    ""
+    "Component Licenses:"
+    "- Free Pascal Compiler (fpc, ppc*)     : GNU General Public License v2.0 or later (GPL-2.0-or-later)"
+    "- Free Pascal RTL & Standard Packages  : Modified GNU LGPL v2.0 with Static Linking Exception (see COPYING.FPC)"
+    "- Bundled GNU Binutils / Make (win64)  : GNU General Public License v3.0 or later (see COPYING.GPLv3.txt)"
+    "- Bundled LLVM Clang Tools (win64)     : Apache License 2.0 with LLVM Exceptions"
+    "- Nikrun SDK Build Pipeline            : GNU General Public License v3.0 or later (https://github.com/nikrun/sdk)"
+) -join "`n"
+[System.IO.File]::WriteAllText((Join-Path $StageLicenses 'THIRD-PARTY-NOTICES.txt'), $NoticeText + "`n", [System.Text.UTF8Encoding]::new($false))
+
 # 4. Verify staged compiler binary and units
 $StagedFpc = Join-Path $StageBin "fpc$ExeExt"
 $StagedPpc = Join-Path $StageBin $PpcName
