@@ -5,48 +5,47 @@
   </picture>
 </p>
 
-# Nikrun Portable Free Pascal SDKs (`nikrun/sdk`)
+# Nikrun SDKs
 
-[![Build Portable FreePascal SDKs](https://github.com/nikrun/sdk/actions/workflows/build-fpc-sdk.yml/badge.svg)](https://github.com/nikrun/sdk/actions/workflows/build-fpc-sdk.yml)
+[![Build Portable Free Pascal SDKs](https://github.com/nikrun/sdk/actions/workflows/build-fpc-sdk.yml/badge.svg)](https://github.com/nikrun/sdk/actions/workflows/build-fpc-sdk.yml)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](./LICENSE)
+[![Website: nikrun.dev](https://img.shields.io/badge/website-nikrun.dev-0b0e14)](https://nikrun.dev)
 
-> **Portable, zero-config, multi-version Free Pascal SDK archives for the [Nikrun](https://github.com/nikrun) ecosystem**
+> **Portable, prebuilt multi-version & multi-arch Free Pascal toolchains for Windows, Linux, and macOS.**
 
-This repository contains the build pipeline, configuration (`versions.json`), and GitHub Actions automation used to compile, package, smoke-test, and publish **self-contained Free Pascal SDK archives** (`nikrun-fpc-sdk-<version>-<commitShortSha>-<cpu>-<os>.zip`).
+[nikrun.dev](https://nikrun.dev) · [`nik` CLI](https://github.com/nikrun/cli) · **[Free Pascal SDKs](https://github.com/nikrun/sdk)** · [VS Code Extension](https://github.com/nikrun/vscode) · [Website & Docs](https://github.com/nikrun/web) · [Brand Assets](https://github.com/nikrun/brand) · [Build Library](https://github.com/nikrun/build-lib)
 
-### Related Nikrun Repositories
+---
 
-- **[`nikrun/cli`](https://github.com/nikrun/cli)** — Standalone `nik` CLI (`nik sdk`, `nik init`, `nik build`, `nik lsp`, `nik.yaml`, and ecosystem design documentation)
-- **[`nikrun/vscode`](https://github.com/nikrun/vscode)** — Official `vscode-nikrun` Visual Studio Code extension for Object Pascal / Free Pascal
+**Nikrun SDKs** provide clean-room, SHA-256-verified **Free Pascal** compiler toolchains designed to install side by side strictly in user scope (`~/.nikrun/sdks/`) via `nik sdk install`.
+
+This repository contains the build pipeline, branch configuration ([`versions.json`](./versions.json)), and scheduled GitHub Actions automation used to compile, package, smoke-test, and publish self-contained SDK archives (`nikrun-fpc-sdk-<version>-<commitShortSha>-<cpu>-<os>.zip`).
 
 ---
 
 ## Overview
 
-Each Nikrun FPC SDK archive bundles everything required to compile and analyze Object Pascal code out-of-the-box:
+Each portable Free Pascal SDK archive bundles everything required to compile and analyze Object Pascal code out of the box:
 
-1. **Branch & Git-URL Driven:** Builds directly from Free Pascal Git branches/refs (or any valid Free Pascal Git repository URL). The exact compiler version is extracted automatically from `compiler/version.pas`, and both the 8-character commit short SHA (in the archive filename/`sdkId`) and full 40-character commit SHA (in `sdk-manifest.json`) are recorded.
-2. **Portable Layout:** No hardcoded machine paths in `fpc.cfg`. A clean `fpc.cfg` is generated automatically upon extraction into `~/.nikrun/sdks/<sdkId>`.
-3. **Bundled RTL & Packages Sources:** Includes the `.pas`, `.pp`, and `.inc` source files of the Free Pascal Runtime Library (`rtl`) and standard `packages` required by `nik lsp` and IDE language servers for code completion and navigation.
-4. **Automated Nightly Updates:** A scheduled GitHub Actions workflow checks all branches configured in [`versions.json`](./versions.json) every night against the commit SHAs published in `index.json` and rebuilds only the branches that received upstream updates.
+- **Branch & Git-URL Driven:** Builds directly from upstream Free Pascal Git branches/refs. The exact compiler version is extracted automatically from `compiler/version.pas`, recording both the 8-character commit short SHA (in the archive filename/`sdkId`) and the full 40-character commit SHA (in `sdk-manifest.json`).
+- **100% Portable User-Scope Layout:** No hardcoded machine paths. An isolated per-SDK `fpc.cfg` is generated automatically upon extraction into `~/.nikrun/sdks/<sdkId>`.
+- **Bundled RTL & Packages Sources:** Includes clean `.pas`, `.pp`, and `.inc` source files of the Free Pascal Runtime Library (`source/rtl`) and standard `source/packages` required by the built-in Language Server (`nik lsp`) for instant navigation and code intelligence.
+- **Automated Nightly Updates:** A scheduled GitHub Actions workflow checks all branches configured in [`versions.json`](./versions.json) nightly against the commit SHAs published in `index.json` and rebuilds only the branches that received upstream commits.
 
----
+### How Nikrun SDKs Compare
 
-## How Nikrun SDKs Differ from `freepascal.org` Downloads
-
-While `freepascal.org` distributes precompiled release installers (which `build.ps1` uses as clean-room bootstrap seeds where available), those official packages target traditional system-wide installations. Nikrun SDKs are engineered for modern, isolated, multi-version workflows:
-
-| Aspect | Official `freepascal.org` Downloads | Nikrun Portable FPC SDK |
+| Aspect | Official `freepascal.org` Installers | **Nikrun SDKs** |
 | :--- | :--- | :--- |
-| **Installation & Isolation** | OS-specific system installers (`.exe` wizard on Windows, root/admin `.pkg` on macOS, interactive `install.sh` writing `/etc/fpc.cfg` on Linux) that hardcode machine paths globally. | **100% portable user-scope `.zip`** requiring no admin/root privileges. Identical directory layout (`bin/`, `units/`, `source/`, `sdk-manifest.json`) across Windows, Linux, and macOS under `~/.nikrun/sdks/`. |
-| **`fpc.cfg` & Modern OS Readiness** | Global configuration; official `3.2.2` installers frequently fail out of the box on modern macOS/Xcode due to missing SDK sysroot (`-XR`) paths or Linux multiarch `crtbegin.o` / `libc` paths. | **Zero-config per-SDK `fpc.cfg`:** `nik` generates an isolated config upon install (dynamically resolving macOS `xcrun` SDK sysroots and Linux library paths) and invokes the compiler with `-n @fpc.cfg`. |
-| **Multi-Version & Branch Coverage** | Infrequent static releases (`3.2.2` dates from 2021). Installing multiple versions side by side risks `PATH` and `fpc.cfg` collisions; no prebuilt `main` (`3.3.1`) or `fixes_3_2`. | **Side-by-side versions + nightly builds:** Prebuilt archives for stable (`3.2.2`, `3.2.4`), maintenance (`fixes_3_2` / `3.2.5`), and trunk (`main` / `3.3.1`, including anonymous functions and modern language features). |
-| **Native 64-Bit, `aarch64-win64` & Binutils** | No official download for **Windows ARM64 (`aarch64-win64`)**; Windows `3.2.2` defaults to a 32-bit `ppc386` host binary. | Native 64-bit `ppcx64` / `ppca64` compilers everywhere—including **native `aarch64-win64`**—bundled with required Windows binutils (`ld`/`windres` on x64, LLVM `clang`/`llvm-ar` on ARM64). |
-| **Bundled RTL & Package Sources** | Binary installers and source archives are often separate downloads or placed in OS-dependent directories. | **IDE & LSP ready:** Every SDK archive includes clean `.pas`, `.pp`, and `.inc` sources under `source/rtl` and `source/packages` for immediate code navigation and `nik lsp` indexing. |
-| **CLI, CI/CD & Integrity** | Designed around manual SourceForge downloads and interactive setup wizards. | Machine-readable `sdk-manifest.json` (with exact 40-char `gitCommit` and direct `paths.ppcBinary`) + `index.json` with SHA-256 checksums for unattended `nik sdk install <version>`. |
+| **Installation & Isolation** | OS-specific system installers (`.exe` wizard, root `.pkg`, interactive `install.sh` writing `/etc/fpc.cfg`) that hardcode machine paths globally. | **100% portable user-scope `.zip`** requiring no admin/root privileges, with an identical layout across Windows, Linux, and macOS under `~/.nikrun/sdks/`. |
+| **`fpc.cfg` & Modern OS Support** | Global configuration; official `3.2.2` installers frequently hit missing Xcode sysroot (`-XR`) or Linux multiarch `crtbegin.o` / `libc` path snags. | **Zero-config per-SDK `fpc.cfg`:** `nik` resolves macOS `xcrun` SDK sysroots and Linux library paths automatically and invokes `ppc*` with `-n @fpc.cfg`. |
+| **Multi-Version & Nightly Trunk** | Infrequent static releases (`3.2.2` is from 2021); parallel installs collide in `PATH` and `fpc.cfg`; no prebuilt `main` (`3.3.1`) or `fixes_3_2`. | **Side-by-side versions + nightly builds:** Prebuilt archives for stable (`3.2.2`, `3.2.4`), maintenance (`fixes_3_2` / `3.2.5`), and trunk (`main` / `3.3.1`). |
+| **Native 64-Bit & `aarch64-win64`** | No official download for **Windows ARM64 (`aarch64-win64`)**; Windows `3.2.2` defaults to a 32-bit `ppc386` host binary. | Native 64-bit `ppcx64` / `ppca64` compilers everywhere — including **native `aarch64-win64`** — bundled with platform binutils (`ld`/`windres` or LLVM `clang`/`llvm-ar`). |
+| **Bundled RTL & Package Sources** | Binary installers and source archives are often separate downloads or placed in OS-dependent directories. | **IDE & LSP ready:** Every archive includes clean `.pas`, `.pp`, and `.inc` sources under `source/rtl` and `source/packages`. |
+| **CLI, CI/CD & Integrity** | Designed around manual downloads and interactive setup wizards. | Machine-readable `sdk-manifest.json` + `index.json` with SHA-256 checksums for unattended `nik sdk install <version>`. |
 
 ---
 
-## Architecture & Process Flow
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -72,11 +71,7 @@ flowchart LR
     VJ --> GIT --> BOOT
 ```
 
----
-
-## Configured FPC Branches (`versions.json`)
-
-Instead of hardcoding static compiler versions, [`versions.json`](./versions.json) defines the upstream Free Pascal Git branches/tags tracked by the automated build pipeline:
+### Supported Free Pascal Branches (`versions.json`)
 
 | Branch / Git Ref | Current FPC Version | Windows (`x86_64`) | Windows (`aarch64`) | Linux (`x86_64`) | Linux (`aarch64`) | macOS (`x86_64`) | macOS (`aarch64`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -87,57 +82,69 @@ Instead of hardcoding static compiler versions, [`versions.json`](./versions.jso
 
 ---
 
-## Scripts Reference
+## Quick Start
 
-### 1. `build.ps1`
-Validates the Git repository and branch/ref, reads the FPC version from `compiler/version.pas`, and builds the portable `.zip` archive and `.sha256` checksum in `dist/`.
+To install prebuilt SDKs as a developer, use the **`nik` CLI** ([`nikrun/cli`](https://github.com/nikrun/cli)):
+
+```bash
+nik sdk list --remote            # Browse available prebuilt SDKs across versions & architectures
+nik sdk install 3.2.4            # Download, SHA-256 verify, and configure Free Pascal 3.2.4
+nik sdk install 3.3.1            # Install nightly Free Pascal 3.3.1 side by side
+nik sdk update                   # Update installed SDKs to the newest prebuilt commits
+```
+
+---
+
+## Repository Structure & SDK Layout
+
+```text
+nikrun-fpc-sdk-<version>-<commitShortSha>-<cpu>-<os>.zip
+├── sdk-manifest.json          # Version, gitRepo, gitRef, full gitCommit SHA, target triplet & paths
+├── bin/
+│   └── <cpu>-<os>/            # fpc, ppcx64/ppca64, fpcmkcfg, make, ld, as, ar, windres...
+│                              # (fpc.cfg is generated here upon installation)
+├── units/
+│   └── <cpu>-<os>/            # Precompiled .ppu units (rtl, fcl-*, rtl-generics, etc.)
+├── source/
+│   ├── rtl/                   # Clean RTL source files (.pas, .pp, .inc) for nik lsp
+│   └── packages/              # Clean standard package source files for nik lsp
+└── licenses/                  # Upstream FPC (GPLv2+, COPYING.FPC), binutils (GPLv3) & notice files
+```
+
+> **Note on `ppc*` vs. `fpc`:** In Free Pascal, `ppcx64` / `ppca64` (*Portable Pascal Compiler*) is the actual CPU-specific compiler backend, whereas `fpc` (`compiler/utils/fpc.pp`) is a thin upstream CLI wrapper that selects a `ppc*` binary and forwards flags. Both paths are recorded in `sdk-manifest.json` (`paths.ppcBinary` and `paths.fpcBinary`): `nik` invokes `ppc*` directly to avoid an extra wrapper hop and global `PATH` side effects, while `fpc` remains included for compatibility with external scripts and Makefiles.
+
+---
+
+## Development & Testing
+
+### 1. Build an SDK Archive (`build.ps1`)
 
 ```powershell
 # Build the default branch from versions.json (release_3_2_4-branch)
 .\build.ps1
 
-# Build the Free Pascal development trunk (main)
+# Build the Free Pascal development trunk (main) or 3.2 maintenance branch
 .\build.ps1 -Branch main
-
-# Build the 3.2 maintenance branch
 .\build.ps1 -Branch fixes_3_2
-
-# Build from an explicit Free Pascal Git repository URL and branch
-.\build.ps1 -RepoUrl "https://gitlab.com/freepascal.org/fpc/source.git" -Branch main
 
 # Validate repository, fetch source, and inspect extracted version/commit metadata without compiling
 .\build.ps1 -Branch main -VerifySourceOnly
 ```
 
-**Parameters:**
-- `-Branch` *(Aliases: `-GitRef`, `-Ref`)*: Git branch, tag, or ref to build (defaults to `defaultBranch` in `versions.json`)
-- `-RepoUrl` *(Aliases: `-GitRepo`, `-Url`)*: Free Pascal Git repository URL (defaults to `https://gitlab.com/freepascal.org/fpc/source.git`)
-- `-Commit`: Optional exact Git commit SHA override while keeping `-Branch` as the recorded `gitRef`
-- `-TargetOs`: `auto` (default), `win64`, `linux`, `darwin`
-- `-TargetCpu`: `auto` (default), `x86_64`, `aarch64`
-- `-SkipZip`: Populates `.work/stage/<sdkId>` without compressing to `.zip`
-- `-VerifySourceOnly`: Validates the Git repository, checks Free Pascal source layout, and outputs extracted version & commit metadata without running `make`
+**Key Parameters:** `-Branch` (`-GitRef`), `-RepoUrl` (`-GitRepo`), `-Commit`, `-TargetOs` (`auto`, `win64`, `linux`, `darwin`), `-TargetCpu` (`auto`, `x86_64`, `aarch64`), `-SkipZip`, `-VerifySourceOnly`.
 
----
-
-### 2. `test.ps1`
-Extracts a built FPC SDK `.zip` archive into `~/.nikrun/sdks/<sdkId>`, verifies `sdk-manifest.json` (including `gitCommit`), generates `fpc.cfg`, and compiles + runs an isolated smoke-test program (`smoketest.pas`).
+### 2. Smoke-Test an SDK Archive (`test.ps1`)
 
 ```powershell
 # Extract the most recently built archive from ./dist, configure fpc.cfg, and run smoke test
 .\test.ps1
 
-# Test a specific archive into a custom directory
+# Test a specific archive or an already extracted SDK directory
 .\test.ps1 -ZipPath .\dist\nikrun-fpc-sdk-3.2.4-66940ee6-x86_64-win64.zip -InstallRoot "C:\Tools\nikrun-sdks"
-
-# Test an already extracted FPC SDK directory directly
 .\test.ps1 -SdkPath "$env:USERPROFILE\.nikrun\sdks\nikrun-fpc-sdk-3.2.4-66940ee6-x86_64-win64"
 ```
 
----
-
-### 3. `resolve-matrix.ps1`, `publish-release.ps1` & `format-release-notes.ps1`
-CI/release automation scripts invoked by [`.github/workflows/build-fpc-sdk.yml`](./.github/workflows/build-fpc-sdk.yml) (and directly runnable locally for dry-run testing):
+### 3. Matrix & Release Automation Scripts
 
 ```powershell
 # Check upstream Git commits against versions.json and preview the filtered build matrix
@@ -152,30 +159,10 @@ CI/release automation scripts invoked by [`.github/workflows/build-fpc-sdk.yml`]
 
 ---
 
-## FPC SDK Archive Structure
-
-Every `nikrun-fpc-sdk-<version>-<commitShortSha>-<cpu>-<os>.zip` archive follows an identical layout across all operating systems:
-
-```text
-nikrun-fpc-sdk-<version>-<commitShortSha>-<cpu>-<os>.zip
-├── sdk-manifest.json          # Version, gitRepo, gitRef, full gitCommit SHA, target triplet & paths
-├── bin/
-│   └── <cpu>-<os>/            # fpc, ppcx64/ppca64, fpcmkcfg, make, ld, as, ar, windres...
-│                              # (fpc.cfg is generated here upon installation)
-├── units/
-│   └── <cpu>-<os>/            # Precompiled .ppu units (rtl, fcl-*, rtl-generics, etc.)
-├── source/
-│   ├── rtl/                   # Clean RTL source files (.pas, .pp, .inc) for IDE IntelliSense
-│   └── packages/              # Clean standard package source files for IDE IntelliSense
-└── licenses/                  # Upstream FPC (GPLv2+, COPYING.FPC), binutils (GPLv3) & notice files
-```
-
-> **Note on `ppc*` vs. `fpc`:** In Free Pascal, `ppcx64` / `ppca64` (*Portable Pascal Compiler*) is the actual CPU-specific compiler backend, whereas `fpc` (`compiler/utils/fpc.pp`) is only a thin upstream CLI dispatcher that selects a `ppc*` binary and forwards flags. Both paths are recorded in `sdk-manifest.json` (`paths.ppcBinary` and `paths.fpcBinary`): `nik` targets `ppc*` directly to avoid an extra wrapper hop and global `PATH` side effects, while `fpc` remains included for compatibility with external scripts and Makefiles.
-
----
-
 ## License
 
 Copyright (c) 2026 The Nikrun Contributors.
 
-Pipeline scripts and configuration in this repository are licensed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`) — see [LICENSE](./LICENSE). Built Free Pascal compiler binaries, runtime libraries, binutils, and bundled source files inside generated SDK archives remain under their respective upstream [Free Pascal licenses](https://www.freepascal.org/faq.html#general-license) (GPLv2+ for the compiler; modified LGPL with static linking exception for the RTL and packages; GPLv3 / Apache-2.0 with LLVM Exception for bundled platform binutils).
+Pipeline scripts and configuration in this repository are licensed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`) — see [LICENSE](./LICENSE).
+
+> **Note on Bundled Upstream Toolchains:** Built Free Pascal compiler binaries, runtime libraries, binutils, and bundled source files inside generated SDK archives remain under their respective upstream [Free Pascal licenses](https://www.freepascal.org/faq.html#general-license) (GPLv2+ for the compiler; modified LGPL with static linking exception for the RTL and packages; GPLv3 / Apache-2.0 with LLVM Exception for bundled platform binutils). Compiling your own applications with these SDKs imposes no licensing restrictions on your code.

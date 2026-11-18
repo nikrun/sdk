@@ -1,10 +1,15 @@
 # AI Agent Guidelines (`nikrun/sdk`)
 
-**Nikrun** is a zero-config, user-scope toolchain and developer ecosystem for **Object Pascal / Free Pascal**, split across three core repositories under `https://github.com/nikrun`:
+**Nikrun** is a zero-config, user-scope toolchain and developer ecosystem for **Free Pascal & Object Pascal**, organized across six repositories under `https://github.com/nikrun`:
 
 1. **[`nikrun/sdk`](https://github.com/nikrun/sdk)** *(this repository)* — Portable Free Pascal SDK build pipeline, `versions.json`, `sdk-manifest.json` / `index.json` schemas, and nightly GitHub Releases (`latest`).
 2. **[`nikrun/cli`](https://github.com/nikrun/cli)** — Standalone `nik` CLI (`src/nik.*.pas`) and `nikrun-lsp-protocol` (`lsp-protocol/`).
-3. **[`nikrun/vscode`](https://github.com/nikrun/vscode)** — Official `vscode-nikrun` Visual Studio Code extension.
+3. **[`nikrun/vscode`](https://github.com/nikrun/vscode)** — Official **Nikrun for VS Code** (`nikrun.vscode`) extension.
+4. **[`nikrun/web`](https://github.com/nikrun/web)** — Official `nikrun.dev` website, VitePress documentation, and CLI installer endpoints.
+5. **[`nikrun/brand`](https://github.com/nikrun/brand)** — Canonical vector marks, icons, favicons, and social preview cards.
+6. **[`nikrun/build-lib`](https://github.com/nikrun/build-lib)** — Shared PowerShell build, packaging, SBOM, and release automation library.
+
+> *(Local multi-repo workspace)* Consult **`../docs/messaging.md`** for binding terminology (`Free Pascal` always with a space, **Nikrun** vs. **`nik`**) and the uniform README blueprint, and run `../docs/sync-ecosystem.ps1 -Check` after editing `README.md`.
 
 ---
 
@@ -13,7 +18,7 @@
 - **Terminology & Typography:**
   - **Nikrun** (capitalized prose, no backticks) refers to the overall project and ecosystem.
   - **`nik`** (lowercase in inline code backticks in Markdown; `nik` in terminal output) refers specifically to the CLI tool binary and its commands.
-  - Keep technical identifiers (`~/.nikrun`, `--nikrun-home`, `NIKRUN_HOME`, `nikrun-fpc-sdk-*`, `sdk-manifest.json`, `index.json`, `vscode-nikrun`, `nik.yaml`) in their exact lowercase technical form.
+  - Keep technical identifiers (`~/.nikrun`, `--nikrun-home`, `NIKRUN_HOME`, `nikrun-fpc-sdk-*`, `sdk-manifest.json`, `index.json`, `nikrun.vscode`, `nik.yaml`) in their exact lowercase technical form.
 - **Clean-Room Supply Chain:** Bootstrap strictly from official Free Pascal releases/sources (`versions.json`); never depend on unverified third-party compiler binaries.
 - **Archive Contract Stability:** Changes to `sdk-manifest.json` or `index.json` fields must remain backward-compatible with `nik` (`nik.sdk.config.pas` in `nikrun/cli`).
 - **Cross-Platform Parity:** Support `win64`, `linux`, and `darwin` (`x86_64` and `aarch64`) cleanly in PowerShell (`pwsh` 7+ on Linux/macOS and Windows PowerShell / `pwsh` on Windows).

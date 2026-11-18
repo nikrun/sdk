@@ -1,4 +1,4 @@
-name: Build Portable FreePascal SDKs
+name: Build Portable Free Pascal SDKs
 
 on:
   schedule:
@@ -12,7 +12,7 @@ on:
         default: 'all'
         type: string
       repo_url:
-        description: 'Optional custom FreePascal Git repository URL override'
+        description: 'Optional custom Free Pascal Git repository URL override'
         required: false
         default: ''
         type: string
