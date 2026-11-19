@@ -34,7 +34,7 @@ Each portable Free Pascal SDK archive bundles everything required to compile and
 
 ### How Nikrun SDKs Compare
 
-| Aspect | Official `freepascal.org` Installers | **Nikrun SDKs** |
+| Aspect | Official freepascal.org Installers | Nikrun SDKs |
 | :--- | :--- | :--- |
 | **Installation & Isolation** | OS-specific system installers (`.exe` wizard, root `.pkg`, interactive `install.sh` writing `/etc/fpc.cfg`) that hardcode machine paths globally. | **100% portable user-scope `.zip`** requiring no admin/root privileges, with an identical layout across Windows, Linux, and macOS under `~/.nikrun/sdks/`. |
 | **`fpc.cfg` & Modern OS Support** | Global configuration; official `3.2.2` installers frequently hit missing Xcode sysroot (`-XR`) or Linux multiarch `crtbegin.o` / `libc` path snags. | **Zero-config per-SDK `fpc.cfg`:** `nik` resolves macOS `xcrun` SDK sysroots and Linux library paths automatically and invokes `ppc*` with `-n @fpc.cfg`. |
@@ -73,7 +73,7 @@ flowchart LR
 
 ### Supported Free Pascal Branches (`versions.json`)
 
-| Branch / Git Ref | Current FPC Version | Windows (`x86_64`) | Windows (`aarch64`) | Linux (`x86_64`) | Linux (`aarch64`) | macOS (`x86_64`) | macOS (`aarch64`) |
+| Branch / Git Ref | Current FPC Version | Windows (x86_64) | Windows (aarch64) | Linux (x86_64) | Linux (aarch64) | macOS (x86_64) | macOS (aarch64) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **`release_3_2_2`** | `3.2.2` | ✅ | *(via `x86_64`)* | ✅ | ✅ | ✅ | ✅ |
 | **`release_3_2_4-branch`** | `3.2.4` | ✅ | *(via `x86_64`)* | ✅ | ✅ | ✅ | ✅ |
